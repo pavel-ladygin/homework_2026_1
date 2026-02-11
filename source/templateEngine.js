@@ -7,17 +7,28 @@
  * @param {Object} data - объект с данными
  * @returns {String}
  */
-const templateEngine = function (template, data){
-    return template.replace(/{{\s*([^}]+)\s*}}/g, function (match, path){
-        path = path.trim();
-        const keys = path.split('.');
 
-        const result = keys.reduce( (acc, key) => {
-            if (acc == null){
-                return undefined;
-            }
-            return acc[key];
-        }, data);
-        return result == null ? '' : String(result);
-    });
+const REGULAR_TEMPLATE = /{{\s*([^}]+)\s*}}/g;
+
+const resolvePath = (data, path) => {
+    path = path.trim();
+    const keys = path.split('.');
+    return keys.reduce((acc, key) => {
+    if (acc == null){
+        return undefined;
+    }
+    return acc[key];
+}, data);
+};
+
+const replaceTemplateVariable = (data) => (_, path) => {
+    const result = resolvePath(data, path);
+    return String(result ?? '');
+};
+
+const templateEngine = (template, data) => {
+    return template.replace(
+        REGULAR_TEMPLATE,
+        replaceTemplateVariable(data)
+    );
 };
